@@ -29,6 +29,7 @@ from services import transcription as transcription_api
 import sys
 from services import email_api
 from triggers import api as triggers_api
+from integrations import api as integrations_api
 
 
 if sys.platform == "win32":
@@ -47,6 +48,15 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting up FastAPI application with instance ID: {instance_id} in {config.ENV_MODE.value} mode")
     try:
         await db.initialize()
+        
+        # Inicializa feature flags na startup
+        try:
+            from startup_flags import initialize_flags
+            await initialize_flags()
+            logger.info("Feature flags initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize feature flags: {e}")
+            # Não falha a aplicação se as flags não inicializarem
         
         agent_api.initialize(
             db,
@@ -72,6 +82,9 @@ async def lifespan(app: FastAPI):
         
         # Initialize triggers API
         triggers_api.initialize(db)
+        
+        # Initialize integrations API
+        integrations_api.initialize(db)
 
         # Initialize pipedream API
         pipedream_api.initialize(db)
@@ -179,6 +192,7 @@ from knowledge_base import api as knowledge_base_api
 api_router.include_router(knowledge_base_api.router)
 
 api_router.include_router(triggers_api.router)
+api_router.include_router(integrations_api.router)
 
 from pipedream import api as pipedream_api
 api_router.include_router(pipedream_api.router)

@@ -1268,14 +1268,14 @@ async def get_usage_logs_endpoint(
         db = DBConnection()
         client = await db.client
         
-        # Check if we're in local development mode
-        if config.ENV_MODE == EnvMode.LOCAL:
-            logger.info("Running in local development mode - usage logs are not available")
-            return {
-                "logs": [], 
-                "has_more": False,
-                "message": "Usage logs are not available in local development mode"
-            }
+        # Usage logs are now available in all modes
+        # if config.ENV_MODE == EnvMode.LOCAL:
+        #     logger.info("Running in local development mode - usage logs are not available")
+        #     return {
+        #         "logs": [], 
+        #         "has_more": False,
+        #         "message": "Usage logs are not available in local development mode"
+        #     }
         
         # Validate pagination parameters
         if page < 0:

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Zap, Server, Store } from 'lucide-react'
+import { Zap, Server, Store, Globe } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MCPConfigurationProps, MCPConfiguration as MCPConfigurationType } from './types';
 import { ConfiguredMcpList } from './configured-mcp-list';
 import { CustomMCPDialog } from './custom-mcp-dialog';
 import { PipedreamRegistry } from '@/components/agents/pipedream/pipedream-registry';
 import { ToolsManager } from './tools-manager';
+import { MCPServerBrowser } from './mcp-server-browser';
 
 export const MCPConfigurationNew: React.FC<MCPConfigurationProps> = ({
   configuredMCPs,
@@ -15,6 +16,7 @@ export const MCPConfigurationNew: React.FC<MCPConfigurationProps> = ({
 }) => {
   const [showCustomDialog, setShowCustomDialog] = useState(false);
   const [showRegistryDialog, setShowRegistryDialog] = useState(false);
+  const [showMCPBrowser, setShowMCPBrowser] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showPipedreamToolsManager, setShowPipedreamToolsManager] = useState(false);
   const [showCustomToolsManager, setShowCustomToolsManager] = useState(false);
@@ -124,6 +126,29 @@ export const MCPConfigurationNew: React.FC<MCPConfigurationProps> = ({
     setSelectedMCPForTools(null);
   };
 
+  const handleMCPServerSelect = (server: any) => {
+    // Create a configuration for the selected MCP server
+    const mcpConfig: MCPConfigurationType = {
+      name: server.displayName,
+      qualifiedName: server.qualifiedName,
+      config: {
+        // The configuration will need to be set up based on the server requirements
+        // For now, we'll just store the basic info
+        serverUrl: `https://server.smithery.ai/${server.qualifiedName}/mcp`,
+        requiresConfig: true
+      },
+      enabledTools: [],
+      isCustom: false,
+      customType: undefined
+    };
+    
+    // Add to the list of configured MCPs
+    onConfigurationChange([...configuredMCPs, mcpConfig]);
+    setShowMCPBrowser(false);
+    
+    // TODO: Open configuration dialog for the server if it requires configuration
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 overflow-y-auto">
@@ -139,9 +164,13 @@ export const MCPConfigurationNew: React.FC<MCPConfigurationProps> = ({
               Browse the app registry to connect your apps through Pipedream or add custom MCP servers
             </p>
             <div className="flex gap-2 justify-center">
-              <Button onClick={() => setShowRegistryDialog(true)} variant="default">
+              <Button onClick={() => setShowMCPBrowser(true)} variant="default">
+                <Globe className="h-4 w-4" />
+                Browse MCPs
+              </Button>
+              <Button onClick={() => setShowRegistryDialog(true)} variant="outline">
                 <Store className="h-4 w-4" />
-                Browse Apps
+                Pipedream Apps
               </Button>
               <Button onClick={() => setShowCustomDialog(true)} variant="outline">
                 <Server className="h-4 w-4" />
@@ -175,9 +204,13 @@ export const MCPConfigurationNew: React.FC<MCPConfigurationProps> = ({
       {configuredMCPs.length > 0 && (
         <div className="flex-shrink-0 pt-4">
           <div className="flex gap-2 justify-center">
-            <Button onClick={() => setShowRegistryDialog(true)} variant="default">
+            <Button onClick={() => setShowMCPBrowser(true)} variant="default">
+              <Globe className="h-4 w-4" />
+              Browse MCPs
+            </Button>
+            <Button onClick={() => setShowRegistryDialog(true)} variant="outline">
               <Store className="h-4 w-4" />
-              Browse Apps
+              Pipedream Apps
             </Button>
             <Button onClick={() => setShowCustomDialog(true)} variant="outline">
               <Server className="h-4 w-4" />
@@ -222,6 +255,12 @@ export const MCPConfigurationNew: React.FC<MCPConfigurationProps> = ({
           onToolsUpdate={handleCustomToolsUpdate}
         />
       )}
+      <MCPServerBrowser
+        open={showMCPBrowser}
+        onOpenChange={setShowMCPBrowser}
+        onServerSelect={handleMCPServerSelect}
+        selectedAgentId={selectedAgentId}
+      />
     </div>
   );
 };

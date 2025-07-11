@@ -10,6 +10,15 @@ from services import redis
 
 logger = logging.getLogger(__name__)
 
+# Import the override
+try:
+    from .flags_override import is_enabled_override
+    OVERRIDE_ACTIVE = True
+    logger.info("Feature flags override is ACTIVE - all flags will return True")
+except ImportError:
+    OVERRIDE_ACTIVE = False
+    logger.info("Feature flags override not found - using normal flag system")
+
 class FeatureFlagManager:
     def __init__(self):
         """Initialize with existing Redis service"""
@@ -39,6 +48,10 @@ class FeatureFlagManager:
     
     async def is_enabled(self, key: str) -> bool:
         """Check if a feature flag is enabled"""
+        # Use override if active
+        if OVERRIDE_ACTIVE:
+            return await is_enabled_override(key)
+            
         try:
             flag_key = f"{self.flag_prefix}{key}"
             redis_client = await redis.get_client()
@@ -46,8 +59,8 @@ class FeatureFlagManager:
             return enabled == 'true' if enabled else False
         except Exception as e:
             logger.error(f"Failed to check feature flag {key}: {e}")
-            # Return False by default if Redis is unavailable
-            return False
+            # Return True by default if Redis is unavailable and override is not active
+            return True
     
     async def get_flag(self, key: str) -> Optional[Dict[str, str]]:
         """Get feature flag details"""
@@ -125,6 +138,9 @@ async def set_flag(key: str, enabled: bool, description: str = "") -> bool:
 
 
 async def is_enabled(key: str) -> bool:
+    # Use override if active
+    if OVERRIDE_ACTIVE:
+        return await is_enabled_override(key)
     return await get_flag_manager().is_enabled(key)
 
 

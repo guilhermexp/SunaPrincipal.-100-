@@ -7,7 +7,7 @@ import { useAvailableModels } from '@/hooks/react-query/subscriptions/use-model'
 
 export const STORAGE_KEY_MODEL = 'suna-preferred-model-v2';
 export const STORAGE_KEY_CUSTOM_MODELS = 'customModels';
-export const DEFAULT_PREMIUM_MODEL_ID = 'claude-sonnet-4';
+export const DEFAULT_PREMIUM_MODEL_ID = 'google/gemini-2.5-pro';
 // export const DEFAULT_FREE_MODEL_ID = 'deepseek';
 export const DEFAULT_FREE_MODEL_ID = 'claude-sonnet-4';
 
@@ -202,7 +202,7 @@ export const useModelSelection = () => {
         },
         { 
           id: DEFAULT_PREMIUM_MODEL_ID, 
-          label: 'Sonnet 4', 
+          label: 'Gemini 2.5 Pro', 
           requiresSubscription: true, 
           priority: MODELS[DEFAULT_PREMIUM_MODEL_ID]?.priority || 100
         },
@@ -297,6 +297,15 @@ export const useModelSelection = () => {
       const savedModel = localStorage.getItem(STORAGE_KEY_MODEL);
       console.log('Saved model from localStorage:', savedModel);
       
+      // In LOCAL mode, if saved model is the old default (claude-sonnet-4), update to new default
+      if (isLocalMode() && savedModel === 'claude-sonnet-4') {
+        console.log('Updating old default model to new default:', DEFAULT_PREMIUM_MODEL_ID);
+        setSelectedModel(DEFAULT_PREMIUM_MODEL_ID);
+        saveModelPreference(DEFAULT_PREMIUM_MODEL_ID);
+        setHasInitialized(true);
+        return;
+      }
+      
       // If we have a saved model, validate it's still available and accessible
       if (savedModel) {
         // Wait for models to load before validating
@@ -327,7 +336,9 @@ export const useModelSelection = () => {
       }
       
       // Fallback to default model
-      const defaultModel = subscriptionStatus === 'active' ? DEFAULT_PREMIUM_MODEL_ID : DEFAULT_FREE_MODEL_ID;
+      // In LOCAL mode, always use premium model as default
+      const defaultModel = isLocalMode() ? DEFAULT_PREMIUM_MODEL_ID : 
+                          (subscriptionStatus === 'active' ? DEFAULT_PREMIUM_MODEL_ID : DEFAULT_FREE_MODEL_ID);
       console.log('Using default model:', defaultModel);
       setSelectedModel(defaultModel);
       saveModelPreference(defaultModel);
@@ -335,7 +346,9 @@ export const useModelSelection = () => {
       
     } catch (error) {
       console.warn('Failed to load preferences from localStorage:', error);
-      const defaultModel = subscriptionStatus === 'active' ? DEFAULT_PREMIUM_MODEL_ID : DEFAULT_FREE_MODEL_ID;
+      // In LOCAL mode, always use premium model as default
+      const defaultModel = isLocalMode() ? DEFAULT_PREMIUM_MODEL_ID : 
+                          (subscriptionStatus === 'active' ? DEFAULT_PREMIUM_MODEL_ID : DEFAULT_FREE_MODEL_ID);
       setSelectedModel(defaultModel);
       saveModelPreference(defaultModel);
       setHasInitialized(true);
@@ -362,7 +375,9 @@ export const useModelSelection = () => {
       console.warn('Model not found in options:', modelId, MODEL_OPTIONS, isCustomModel, customModels);
       
       // Reset to default model when the selected model is not found
-      const defaultModel = isLocalMode() ? DEFAULT_PREMIUM_MODEL_ID : DEFAULT_FREE_MODEL_ID;
+      // In LOCAL mode, always use premium model as default
+      const defaultModel = isLocalMode() ? DEFAULT_PREMIUM_MODEL_ID : 
+                          (subscriptionStatus === 'active' ? DEFAULT_PREMIUM_MODEL_ID : DEFAULT_FREE_MODEL_ID);
       setSelectedModel(defaultModel);
       saveModelPreference(defaultModel);
       return;

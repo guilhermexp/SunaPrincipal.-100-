@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
+import { isOverriddenFlag, getOverriddenValue } from './feature-flags-override';
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
@@ -34,6 +35,11 @@ export class FeatureFlagManager {
   }
 
   async isEnabled(flagName: string): Promise<boolean> {
+    // Check for override first
+    if (isOverriddenFlag(flagName)) {
+      return getOverriddenValue(flagName);
+    }
+    
     try {
       const cached = flagCache.get(flagName);
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
@@ -142,6 +148,10 @@ export class FeatureFlagManager {
 const featureFlagManager = FeatureFlagManager.getInstance();
 
 export const isEnabled = (flagName: string): Promise<boolean> => {
+  // Check for override first - direct check for better performance
+  if (isOverriddenFlag(flagName)) {
+    return Promise.resolve(getOverriddenValue(flagName));
+  }
   return featureFlagManager.isEnabled(flagName);
 };
 

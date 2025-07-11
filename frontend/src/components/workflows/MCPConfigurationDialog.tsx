@@ -8,9 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Save, Settings, Search, Database, GitBranch, MessageSquare, AlertTriangle } from "lucide-react";
+import { Save, Settings, Search, Database, GitBranch, MessageSquare, AlertTriangle, Server, Globe, ExternalLink, Users, Clock } from "lucide-react";
 import { CredentialProfileSelector } from "./CredentialProfileSelector";
 import { type CredentialProfile } from "@/hooks/react-query/mcp/use-credential-profiles";
+import { usePopularMCPServers } from "@/hooks/react-query/mcp/use-mcp-servers";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface MCPServer {
   id: string;
