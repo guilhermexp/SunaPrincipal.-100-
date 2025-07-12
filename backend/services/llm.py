@@ -169,10 +169,6 @@ def prepare_params(
             # "anthropic-beta": "max-tokens-3-5-sonnet-2024-07-15"
             "anthropic-beta": "output-128k-2025-02-19"
         }
-        params["fallbacks"] = [{
-            "model": "openrouter/anthropic/claude-sonnet-4",
-            "messages": messages,
-        }]
         # params["mock_testing_fallback"] = True
         logger.debug("Added Claude-specific headers")
 
@@ -200,6 +196,14 @@ def prepare_params(
             params["model_id"] = "arn:aws:bedrock:us-west-2:935064898258:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0"
             logger.debug(f"Auto-set model_id for Claude 3.7 Sonnet: {params['model_id']}")
 
+    fallback_model = get_openrouter_fallback(model_name)
+    if fallback_model:
+        params["fallbacks"] = [{
+            "model": fallback_model,
+            "messages": messages,
+        }]
+        logger.debug(f"Added OpenRouter fallback for model: {model_name} to {fallback_model}")
+
     # Apply Anthropic prompt caching (minimal implementation)
     # Check model name *after* potential modifications (like adding bedrock/ prefix)
     effective_model_name = params.get("model", model_name) # Use model from params if set, else original
@@ -212,7 +216,7 @@ def prepare_params(
 
         # Apply cache control to the first 4 text blocks across all messages
         cache_control_count = 0
-        max_cache_control_blocks = 4
+        max_cache_control_blocks = 3
 
         for message in messages:
             if cache_control_count >= max_cache_control_blocks:
@@ -343,27 +347,6 @@ async def make_llm_api_call(
             logger.debug(f"Successfully received API response from {model_name}")
             # logger.debug(f"Response: {response}")
             return response
-
-        except litellm.exceptions.InternalServerError as e:
-            # Check if it's an Anthropic overloaded error
-            if "Overloaded" in str(e) and "AnthropicException" in str(e):
-                fallback_model = get_openrouter_fallback(model_name)
-                if fallback_model and not params.get("model", "").startswith("openrouter/"):
-                    logger.warning(f"Anthropic overloaded, falling back to OpenRouter: {fallback_model}")
-                    params["model"] = fallback_model
-                    # Remove any model_id as it's specific to Bedrock
-                    params.pop("model_id", None)
-                    # Continue with next attempt using fallback model
-                    last_error = e
-                    await handle_error(e, attempt, MAX_RETRIES)
-                else:
-                    # No fallback available or already using OpenRouter
-                    last_error = e
-                    await handle_error(e, attempt, MAX_RETRIES)
-            else:
-                # Other internal server errors
-                last_error = e
-                await handle_error(e, attempt, MAX_RETRIES)
 
         except (litellm.exceptions.RateLimitError, OpenAIError, json.JSONDecodeError) as e:
             last_error = e
