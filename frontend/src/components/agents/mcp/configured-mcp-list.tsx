@@ -11,6 +11,7 @@ interface ConfiguredMcpListProps {
   onEdit: (index: number) => void;
   onRemove: (index: number) => void;
   onConfigureTools?: (index: number) => void;
+  onEditCredentials?: (index: number) => void;
 }
 
 const MCPConfigurationItem: React.FC<{
@@ -19,7 +20,8 @@ const MCPConfigurationItem: React.FC<{
   onEdit: (index: number) => void;
   onRemove: (index: number) => void;
   onConfigureTools?: (index: number) => void;
-}> = ({ mcp, index, onEdit, onRemove, onConfigureTools }) => {
+  onEditCredentials?: (index: number) => void;
+}> = ({ mcp, index, onEdit, onRemove, onConfigureTools, onEditCredentials }) => {
   const { data: profiles = [] } = useCredentialProfilesForMcp(mcp.qualifiedName);
   const profileId = mcp.selectedProfileId || mcp.config?.profile_id;
   const selectedProfile = profiles.find(p => p.profile_id === profileId);
@@ -29,8 +31,8 @@ const MCPConfigurationItem: React.FC<{
   const needsConfiguration = !hasCredentialProfile && !hasDirectConfig && !mcp.isCustom;
 
   return (
-    <Card className="p-3">
-      <div className="flex items-center justify-between">
+    <Card className="p-3 mb-2">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Sparkles className="h-4 w-4 text-primary" />
@@ -65,6 +67,16 @@ const MCPConfigurationItem: React.FC<{
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
+          {onEditCredentials && !mcp.isCustom && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onEditCredentials(index)}
+              title="Edit credentials"
+            >
+              <Key className="h-4 w-4" />
+            </Button>
+          )}
           {onConfigureTools && (
             <Button
               size="sm"
@@ -94,6 +106,7 @@ export const ConfiguredMcpList: React.FC<ConfiguredMcpListProps> = ({
   onEdit,
   onRemove,
   onConfigureTools,
+  onEditCredentials,
 }) => {
   if (configuredMCPs.length === 0) return null;
 
@@ -107,6 +120,7 @@ export const ConfiguredMcpList: React.FC<ConfiguredMcpListProps> = ({
           onEdit={onEdit}
           onRemove={onRemove}
           onConfigureTools={onConfigureTools}
+          onEditCredentials={onEditCredentials}
         />
       ))}
     </div>

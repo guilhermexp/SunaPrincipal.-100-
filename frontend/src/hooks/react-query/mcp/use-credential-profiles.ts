@@ -23,7 +23,7 @@ export interface CreateCredentialProfileRequest {
   is_default?: boolean;
 }
 
-const API_BASE = `${process.env.NEXT_PUBLIC_BACKEND_URL}/secure-mcp`;
+const API_BASE = `${process.env.NEXT_PUBLIC_BACKEND_URL}/pipedream`;
 
 async function fetchAllCredentialProfiles(): Promise<CredentialProfile[]> {
   const supabase = createClient();
@@ -100,7 +100,7 @@ async function createCredentialProfile(data: CreateCredentialProfileRequest): Pr
     throw new Error('You must be logged in to create credential profiles');
   }
 
-  const response = await fetch(`${API_BASE}/credential-profiles`, {
+  const response = await fetch(`${API_BASE}/profiles`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

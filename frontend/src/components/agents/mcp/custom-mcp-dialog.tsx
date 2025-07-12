@@ -206,7 +206,7 @@ export const CustomMCPDialog: React.FC<CustomMCPDialogProps> = ({
       onOpenChange(open);
       if (!open) handleReset();
     }}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col" aria-describedby="custom-mcp-description">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -214,7 +214,7 @@ export const CustomMCPDialog: React.FC<CustomMCPDialogProps> = ({
             </div>
             <DialogTitle>Connect New Service</DialogTitle>
           </div>
-          <DialogDescription>
+          <DialogDescription id="custom-mcp-description">
             {step === 'setup' 
               ? 'Connect to external services to expand your capabilities with new tools and integrations.'
               : 'Choose which tools you\'d like to enable from this service connection.'

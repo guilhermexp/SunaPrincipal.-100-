@@ -30,15 +30,26 @@ export const MCPServerBrowser: React.FC<MCPServerBrowserProps> = ({
   const { data: allServers, isLoading: isLoadingAll } = useMCPServers(
     selectedTab === 'all' ? debouncedSearchQuery : undefined,
     1,
-    50
+    200
   );
   
-  const { data: popularServers, isLoading: isLoadingPopular } = usePopularMCPServers(1, 50);
+  const { data: popularServers, isLoading: isLoadingPopular } = usePopularMCPServers(1, 200);
 
   const isLoading = selectedTab === 'popular' ? isLoadingPopular : isLoadingAll;
-  const servers = selectedTab === 'popular' 
+  
+  // Get base servers list
+  const baseServers = selectedTab === 'popular' 
     ? popularServers?.servers || [] 
     : allServers?.servers || [];
+    
+  // Apply local search filter for popular tab
+  const servers = selectedTab === 'popular' && searchQuery 
+    ? baseServers.filter(server => 
+        server.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        server.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        server.qualifiedName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : baseServers;
 
   // Debug logging
   console.log('MCP Browser - Tab:', selectedTab);
@@ -59,7 +70,7 @@ export const MCPServerBrowser: React.FC<MCPServerBrowserProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col" aria-describedby="mcp-browser-description">
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col" aria-describedby="mcp-browser-description">
         <DialogHeader>
           <DialogTitle>Browse MCP Servers</DialogTitle>
           <DialogDescription id="mcp-browser-description">
@@ -112,8 +123,8 @@ export const MCPServerBrowser: React.FC<MCPServerBrowserProps> = ({
           </div>
 
           {/* Server List */}
-          <div className="flex-1 overflow-auto">
-            <div className="grid gap-4 pr-4 pb-4">
+          <ScrollArea className="flex-1 h-full">
+            <div className="grid gap-4 pr-4 pb-4 max-h-[500px] overflow-y-auto">
               {isLoading ? (
                 // Loading skeletons
                 Array.from({ length: 6 }).map((_, i) => (
@@ -208,7 +219,7 @@ export const MCPServerBrowser: React.FC<MCPServerBrowserProps> = ({
                 ))
               )}
             </div>
-          </div>
+          </ScrollArea>
         </div>
       </DialogContent>
     </Dialog>

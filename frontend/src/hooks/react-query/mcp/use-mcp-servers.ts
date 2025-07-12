@@ -87,17 +87,24 @@ export const useMCPServers = (query?: string, page: number = 1, pageSize: number
         params.append('q', query);
       }
 
+      console.log('Fetching MCP servers with params:', params.toString());
       const response = await fetch(`${API_URL}/mcp/servers?${params}`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
         },
       });
 
+      console.log('MCP servers response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch MCP servers');
+        const errorText = await response.text();
+        console.error('MCP servers error:', errorText);
+        throw new Error(`Failed to fetch MCP servers: ${response.status} ${errorText}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      console.log('MCP servers data:', data);
+      return data;
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -146,6 +153,7 @@ export const usePopularMCPServers = (page: number = 1, pageSize: number = 50) =>
         pageSize: pageSize.toString(),
       });
 
+      console.log('Fetching popular MCP servers with params:', params.toString());
       const response = await fetch(
         `${API_URL}/mcp/popular-servers?${params}`,
         {
@@ -155,11 +163,17 @@ export const usePopularMCPServers = (page: number = 1, pageSize: number = 50) =>
         }
       );
 
+      console.log('Popular MCP servers response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch popular MCP servers');
+        const errorText = await response.text();
+        console.error('Popular MCP servers error:', errorText);
+        throw new Error(`Failed to fetch popular MCP servers: ${response.status} ${errorText}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      console.log('Popular MCP servers data:', data);
+      return data;
     },
     staleTime: 30 * 60 * 1000,
   });

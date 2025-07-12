@@ -142,12 +142,15 @@ export const ToolsManager: React.FC<ToolsManagerProps> = (props) => {
   if (error) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg" aria-describedby="tools-error-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <XCircle className="h-5 w-5 text-destructive" />
               Error Loading Tools
             </DialogTitle>
+            <DialogDescription id="tools-error-description" className="sr-only">
+              Error occurred while loading tools
+            </DialogDescription>
             <DialogDescription>
               Failed to load {displayName} tools
             </DialogDescription>
@@ -176,13 +179,13 @@ export const ToolsManager: React.FC<ToolsManagerProps> = (props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col" aria-describedby="tools-manager-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
             Configure {displayName} Tools
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="tools-manager-description">
             Choose which {displayName} tools are available to your agent
           </DialogDescription>
         </DialogHeader>
